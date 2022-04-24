@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:graphql_todo/schema/add_task_schema.dart';
-import 'package:graphql_todo/schema/endpoint.dart';
+import 'package:graphql_todo/data/schema/add_task_schema.dart';
+import 'package:graphql_todo/data/schema/endpoint.dart';
 import 'package:logger/logger.dart';
 
 class AddTaskprovider extends ChangeNotifier {
