@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:graphql_todo/data/service/state/controller.dart';
-import 'package:graphql_todo/providers/add_task_provider.dart';
 import 'package:graphql_todo/todo_page.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:provider/provider.dart' as provider;
 
 void main() async {
   await initHiveForFlutter();
@@ -23,16 +19,11 @@ class MyApp extends HookConsumerWidget {
     //   return null;
     // });
 
-    return provider.MultiProvider(
-      providers: [
-        provider.ChangeNotifierProvider(create: (_) => AddTaskprovider()),
-      ],
-      child: MaterialApp(
-          title: 'Flutter Demo',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-          ),
-          home: const TodoPage()),
-    );
+    return MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const TodoPage());
   }
 }

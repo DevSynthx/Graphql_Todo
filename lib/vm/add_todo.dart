@@ -1,7 +1,7 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:graphql_todo/data/controller/request_state_notifier.dart';
 import 'package:graphql_todo/data/repository/repository.dart';
-import 'package:graphql_todo/providers/add_task_model.dart';
+import 'package:graphql_todo/models/add_task_model.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final addTodoProvider =

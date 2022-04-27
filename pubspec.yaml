@@ -43,6 +43,7 @@ dependencies:
   flutter_hooks: ^0.18.0
  
   freezed_annotation: null 
+  flash: ^2.0.3+2
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,10 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:graphql_todo/data/schema/add_task_schema.dart';
+import 'package:graphql_todo/data/schema/delete_task_schema.dart';
 import 'package:graphql_todo/data/schema/endpoint.dart';
 import 'package:graphql_todo/data/schema/get_task_schema.dart';
-import 'package:graphql_todo/providers/add_task_model.dart';
-import 'package:graphql_todo/providers/get_task_model.dart';
+import 'package:graphql_todo/models/add_task_model.dart';
+import 'package:graphql_todo/models/get_task_model.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -56,6 +57,30 @@ class TodoService {
         throw 'We have encountered an error. Service will be restored very soon';
       } else {
         logger.d(result.data);
+        return result;
+      }
+
+      // return result;
+    } on OperationException catch (e) {
+      if (e.graphqlErrors.isNotEmpty) {
+        throw e.graphqlErrors[0].message;
+      } else {
+        throw e.toString();
+      }
+    }
+  }
+
+  Future<QueryResult<Object?>> delete(int? taskId) async {
+    try {
+      final result = await endpoint.getClient().value.mutate(MutationOptions(
+          document: gql(DeleteTaskSchema.deleteTaskJson),
+          variables: {'todoId': taskId}));
+
+      if (result.hasException) {
+        throw 'We have encountered an error. Service will be restored very soon';
+      } else {
+        logger.d(result.data);
+        print(result.hasException);
         return result;
       }
 
