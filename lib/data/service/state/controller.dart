@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:graphql_todo/data/schema/endpoint.dart';
 import 'package:graphql_todo/data/schema/get_task_schema.dart';
-import 'package:graphql_todo/providers/get_task_model.dart';
+import 'package:graphql_todo/models/get_task_model.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod/riverpod.dart';
 

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:graphql_todo/data/controller/request_state_notifier.dart';
-import 'package:graphql_todo/providers/add_task_model.dart';
+import 'package:graphql_todo/models/add_task_model.dart';
+import 'package:graphql_todo/models/get_task_model.dart';
+import 'package:graphql_todo/show_snackbar.dart';
 import 'package:graphql_todo/vm/add_todo.dart';
+import 'package:graphql_todo/vm/delete_todo.dart';
 import 'package:graphql_todo/vm/get_todo.dart';
 import 'package:graphql_todo/widget/textform_widget.dart';
 import 'package:graphql_todo/widget/validator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:provider/provider.dart' as provider;
 
 class TodoPage extends StatefulWidget {
   const TodoPage({Key? key}) : super(key: key);
@@ -38,9 +41,10 @@ class _TodoPageState extends State<TodoPage> {
           padding: const EdgeInsets.only(left: 25, right: 25),
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(
-                  height: 50,
+                  height: 30,
                 ),
                 const Text(
                   'Enter Task',
@@ -80,12 +84,14 @@ class _TodoPageState extends State<TodoPage> {
 
                   ref.listen<RequestState>(addTodoProvider, (previous, value) {
                     if (value is Loading) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please wait')));
+                      ShowSnackBar.showMessage(
+                          context: context, message: 'please wait....');
                     }
-                    if (value is Success) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text('Task added successfully')));
+                    if (value is Success<QueryResult<Object?>>) {
+                      ShowSnackBar.showMessage(
+                          context: context,
+                          message:
+                              '${value.value!.data!["createTodo"]["task"]} has been added 👍');
                       ref.refresh(getTodoProvider);
                     }
                   });
@@ -102,6 +108,8 @@ class _TodoPageState extends State<TodoPage> {
                             if (_formKey.currentState!.validate()) {
                               var sendTask = AddTask(
                                   task: taskText.text, status: 'Active');
+
+                              FocusScope.of(context).unfocus();
 
                               ref
                                   .read(addTodoProvider.notifier)
@@ -147,55 +155,13 @@ class _TodoPageState extends State<TodoPage> {
                       // hasError: (e) => Text(e[0].toString()),
                       success: (data) {
                         return SizedBox(
-                          height: 500,
+                          height: 450,
                           // child: Text(controller.getTasks.length.toString()),
                           child: ListView.separated(
                             itemCount: data!.length,
                             itemBuilder: (context, index) {
-                              final task = data[index];
-                              return Container(
-                                height: 60,
-                                color: Colors.grey.shade200,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 20, right: 20),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(task.task.toString()),
-                                          const SizedBox(
-                                            height: 5,
-                                          ),
-                                          Text(task.status.toString())
-                                        ],
-                                      ),
-                                      const Spacer(),
-                                      const Icon(
-                                        Icons.delete_sweep,
-                                        color: Colors.red,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-
-                              // ListTile(
-                              //   title: Text(task.task.toString()),
-                              //   subtitle: Text(task.status.toString()),
-                              //   tileColor: Colors.grey.shade200,
-                              //   trailing: const Icon(
-                              //     Icons.delete_sweep,
-                              //     color: Colors.red,
-                              //   ),
-                              // );
+                              // final task = data[index];
+                              return TodoBuild(getTask: data[index]);
                             },
                             separatorBuilder:
                                 (BuildContext context, int index) {
@@ -210,6 +176,74 @@ class _TodoPageState extends State<TodoPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class TodoBuild extends ConsumerWidget {
+  final GetTask getTask;
+  const TodoBuild({
+    Key? key,
+    required this.getTask,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // bool isDownloadFinish = false;
+    // final vm = ref.watch(deleteTodoProvider);
+    return Container(
+      height: 60,
+      color: Colors.grey.shade200,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(getTask.task.toString()),
+                const SizedBox(
+                  height: 5,
+                ),
+                Text(getTask.status.toString())
+              ],
+            ),
+            const Spacer(),
+            HookConsumer(builder: (context, ref, child) {
+              ref.listen<RequestState>(deleteTodoProvider, (previous, next) {
+                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                  if (next is Success<QueryResult<Object?>>) {
+                    ShowSnackBar.showMessage(
+                        context: context,
+                        message:
+                            '${next.value!.data!["deleteTodo"]["task"]} has been deleted');
+
+                    ref.refresh(getTodoProvider);
+                  }
+
+                  if (next is Loading) {
+                    ShowSnackBar.showMessage(
+                        context: context, message: 'Please wait.....');
+                  }
+                });
+              });
+
+              return InkWell(
+                onTap: () {
+                  ref.read(deleteTodoProvider.notifier).deleteTodo(getTask.id);
+                },
+                child: const Icon(
+                  Icons.delete_sweep,
+                  color: Colors.red,
+                ),
+              );
+            })
+          ],
         ),
       ),
     );
